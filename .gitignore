@@ -1,0 +1,15 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+
+# Generated outputs (report, metrics, run logs, LaTeX intermediates)
+outputs/
+
+# Course-provided data (do not redistribute)
+data/
+
+# Reflection template is a private submission aid, not part of the public skill
+templates/reflection_template.md
