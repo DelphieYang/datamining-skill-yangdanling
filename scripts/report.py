@@ -26,6 +26,7 @@ Interface: {llm_interface}
 
 ## RESULTS
 {results}
+{figure}
 
 ## DISCUSSION
 {discussion}
@@ -54,6 +55,7 @@ def generate_report(metrics: dict, meta: dict, output_path: str | Path) -> str:
         feature_work=meta.get("feature_work", "…"),
         training=meta.get("training", "…"),
         results=meta.get("results", f"Best model: {best_name}"),
+        figure=meta.get("figure", ""),
         discussion=meta.get("discussion", "…"),
         conclusion=meta.get("conclusion", "…"),
     )
@@ -73,25 +75,70 @@ def _latex_escape(text: str) -> str:
     return text
 
 
+def _table_row(line: str) -> list[str]:
+    """Split a markdown table row into cells."""
+    return [c.strip() for c in line.strip().strip("|").split("|")]
+
+
+def _is_separator(cells: list[str]) -> bool:
+    return bool(cells) and all(re.fullmatch(r":?-+:?", c) for c in cells)
+
+
+def _table_to_latex(block: list[str]) -> str:
+    rows = [_table_row(r) for r in block]
+    rows = [r for r in rows if not _is_separator(r)]
+    if not rows:
+        return ""
+    ncol = len(rows[0])
+    spec = "l" + " c" * (ncol - 1)
+    out = ["\\begin{center}", "\\begin{tabular}{%s}" % spec, "\\hline"]
+    for idx, row in enumerate(rows):
+        out.append(" & ".join(_latex_escape(c) for c in row) + " \\\\")
+        if idx == 0:
+            out.append("\\hline")
+    out.append("\\hline")
+    out.append("\\end{tabular}")
+    out.append("\\end{center}")
+    return "\n".join(out)
+
+
 def _md_to_latex(md_text: str) -> str:
     """Convert the skill's simple markdown report to LaTeX."""
     lines = md_text.splitlines()
     body = []
-    for line in lines:
-        line = line.rstrip()
+    i = 0
+    while i < len(lines):
+        line = lines[i].rstrip()
         if not line.strip():
             body.append("")
+            i += 1
+        elif line.startswith("|"):
+            block = []
+            while i < len(lines) and lines[i].strip().startswith("|"):
+                block.append(lines[i].strip())
+                i += 1
+            body.append(_table_to_latex(block))
         elif line.startswith("# "):
             body.append("\\section*{" + _latex_escape(line[2:]) + "}")
+            i += 1
         elif line.startswith("## "):
             body.append("\\subsection*{" + _latex_escape(line[3:]) + "}")
+            i += 1
         elif line.startswith("- "):
             body.append("\\begin{itemize}\\item " + _latex_escape(line[2:]) + "\\end{itemize}")
+            i += 1
+        elif line.startswith("!["):
+            m = re.match(r"!\[.*?\]\((.+?)\)", line)
+            if m:
+                body.append("\\begin{center}\n\\includegraphics[width=0.78\\textwidth]{"
+                            + m.group(1) + "}\n\\end{center}")
+            i += 1
         else:
             # Escape raw content first, then turn **bold** into \textbf{...}.
             line = _latex_escape(line)
             line = re.sub(r"\*\*(.+?)\*\*", r"\\textbf{\1}", line)
             body.append(line)
+            i += 1
 
     preamble = (
         "\\documentclass[10pt]{article}\n"
@@ -99,6 +146,7 @@ def _md_to_latex(md_text: str) -> str:
         "\\usepackage[utf8]{inputenc}\n"
         "\\usepackage[margin=1in]{geometry}\n"
         "\\usepackage{times}\n"
+        "\\usepackage{graphicx}\n"
         "\\setlength{\\parindent}{0pt}\n"
         "\\setlength{\\parskip}{0.5em}\n"
         "\\begin{document}\n"
@@ -125,7 +173,7 @@ def to_pdf(markdown_path: str | Path, pdf_path: str | Path) -> None:
     tex = md.with_suffix(".tex")
     tex.write_text(_md_to_latex(md.read_text()))
     subprocess.run(
-        ["pdflatex", "-interaction=nonstopmode",
-         "-output-directory", str(md.parent), str(tex)],
+        ["pdflatex", "-interaction=nonstopmode", tex.name],
+        cwd=str(md.parent),
         check=True,
     )

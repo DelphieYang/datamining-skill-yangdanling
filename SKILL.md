@@ -35,6 +35,7 @@ outputs:
   - intermediate/eda_summary.md
   - intermediate/preprocessing_plan.md
   - intermediate/model_comparison.csv
+  - intermediate/confusion_matrix.png
 ---
 
 # Tabular Classifier Skill
@@ -117,7 +118,7 @@ Train and compare **two** classifiers by default: **Logistic Regression** and **
 
 ### 8. Evaluation
 
-Evaluate on the held-out test set and report: **accuracy first**, then balanced accuracy, precision/recall/F1 (macro and weighted), ROC-AUC / PR-AUC for binary, and a confusion matrix. Save everything to `metrics.json`.
+Evaluate on the held-out test set and report: **accuracy first**, then balanced accuracy, precision/recall/F1 (macro and weighted), ROC-AUC / PR-AUC for binary, and a confusion matrix. Save everything to `metrics.json`. Generate a confusion-matrix plot for each model (plus an ROC curve for binary classification) and save it to `intermediate/confusion_matrix.png`.
 
 ### 9. Model Comparison
 
@@ -125,7 +126,7 @@ Write `intermediate/model_comparison.csv` and discuss which model won, why, and 
 
 ### 10. Generate Report
 
-Fill `report.md` from `metrics.json` and the intermediate outputs, then convert to `report.pdf`. Body must fit within two pages; keep at most 1–2 small figures.
+Fill `report.md` from `metrics.json` and the intermediate outputs, embedding the confusion-matrix figure in the results, then convert to `report.pdf`. Body must fit within two pages; keep at most 1–2 small figures.
 
 ### 11. Final Validation
 

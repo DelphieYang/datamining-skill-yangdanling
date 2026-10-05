@@ -9,6 +9,9 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 from sklearn.metrics import (
     accuracy_score,
     balanced_accuracy_score,
@@ -64,3 +67,32 @@ def compare(model_results: dict, metrics_by_model: dict,
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(output_path, index=False)
     return df
+
+
+def plot_confusion_matrices(metrics_by_model: dict, output_path: str | Path) -> str:
+    """Render a side-by-side confusion-matrix figure and save it to disk."""
+    names = list(metrics_by_model.keys())
+    fig, axes = plt.subplots(1, len(names), figsize=(3.6 * len(names), 3.0))
+    if len(names) == 1:
+        axes = [axes]
+    for ax, name in zip(axes, names):
+        cm = np.array(metrics_by_model[name]["confusion_matrix"])
+        n = cm.shape[0]
+        ax.imshow(cm, cmap="Blues")
+        ax.set_title(name, fontsize=10)
+        ax.set_xticks(range(n))
+        ax.set_xticklabels([f"pred {i}" for i in range(n)], fontsize=8)
+        ax.set_yticks(range(n))
+        ax.set_yticklabels([str(i) for i in range(n)], fontsize=8)
+        ax.set_ylabel("Actual", fontsize=9)
+        thresh = cm.max() / 2
+        for i in range(n):
+            for j in range(n):
+                ax.text(j, i, str(cm[i, j]), ha="center", va="center",
+                        color="white" if cm[i, j] > thresh else "black", fontsize=9)
+    fig.tight_layout()
+    path = Path(output_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(path, dpi=150, bbox_inches="tight")
+    plt.close(fig)
+    return str(path)

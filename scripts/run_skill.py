@@ -92,6 +92,8 @@ def main(argv=None) -> int:
     utils.save_json({"models": metrics_by_model}, out / "metrics.json")
     evaluate.compare(model_results, metrics_by_model,
                      out / "intermediate" / "model_comparison.csv")
+    evaluate.plot_confusion_matrices(
+        metrics_by_model, out / "intermediate" / "confusion_matrix.png")
 
     # Report
     report.generate_report(
@@ -99,7 +101,8 @@ def main(argv=None) -> int:
         {"report_title": args.report_title,
          "author": args.author,
          "llm_model_name": args.llm_model_name,
-         "llm_interface": args.llm_interface},
+         "llm_interface": args.llm_interface,
+         "figure": "![Confusion matrices](intermediate/confusion_matrix.png)"},
         out / "report.md",
     )
 
