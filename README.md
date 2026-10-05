@@ -1,8 +1,8 @@
 # Tabular Classifier Skill
 
-A reusable **SKILL** for an end-to-end tabular classification workflow with automated report generation. Built for **IN6227 Data Mining — Assignment 1, Variant 2**.
+A reusable **SKILL** for an end-to-end tabular classification workflow with automated report generation.
 
-The skill takes a **dataset path as input** and, on its own, explores the data, selects preprocessing and models, trains and compares at least two classifiers, and produces a **≤2-page PDF report** plus a separate **Reflection** draft.
+The skill takes a **dataset path as input** and, on its own, explores the data, selects preprocessing and models, trains and compares at least two classifiers, and produces a **≤2-page PDF report**.
 
 ## What it does
 
@@ -12,7 +12,7 @@ The skill takes a **dataset path as input** and, on its own, explores the data, 
 4. Applies leakage-safe preprocessing (imputation, encoding, scaling).
 5. Trains and tunes two classifiers (Logistic Regression + Random Forest).
 6. Evaluates with class-appropriate metrics and compares the models.
-7. Generates `report.md` → `report.pdf` and a `reflection.md` draft.
+7. Generates `report.md` → `report.pdf`.
 
 ## Requirements
 
@@ -20,21 +20,25 @@ The skill takes a **dataset path as input** and, on its own, explores the data, 
 pip install -r requirements.txt
 ```
 
-PDF conversion uses `pandoc` + `xelatex` (optional; install with `brew install pandoc`).
+PDF conversion uses `pandoc` + `xelatex` (optional; the script falls back to a
+built-in LaTeX path if `pandoc` is missing).
 
 ## Usage
 
 ```bash
 python scripts/run_skill.py \
-  --dataset_path data/train.csv \
+  --dataset_path path/to/train.csv \
+  --test_path path/to/test.csv \
   --target_column label \
   --output_dir outputs \
-  --llm_model_name claude-haiku-4-5 \
-  --llm_interface "Claude Code 2.1.24" \
-  --github_link https://github.com/<you>/<repo>
+  --report_title "My Classification Report" \
+  --author "Your Name" \
+  --llm_model_name "some-model-4.5" \
+  --llm_interface "API / ChatUI / Agent Harness"
 ```
 
-If `--target_column` is omitted, the skill infers it and the human should confirm.
+All arguments except `--dataset_path` are optional. If `--target_column` is omitted,
+the skill infers it and the human should confirm.
 
 ## Outputs
 
@@ -42,7 +46,6 @@ If `--target_column` is omitted, the skill infers it and the human should confir
 outputs/
 ├── report.md              # main report (≤2 pages)
 ├── report.pdf
-├── reflection.md          # draft for the human to edit
 ├── metrics.json
 ├── run_log.json
 └── intermediate/
@@ -59,7 +62,6 @@ the final PDF is produced — this is deliberate, not an error.
 
 ## Notes on design decisions
 
-Several defaults are intentionally simple and open to challenge — e.g. mean imputation,
-automatic IQR winsorizing, a fixed model pair, and reporting accuracy first. These are
-documented in the code and are the intended subjects of the assignment's **Reflection**
-section.
+Several defaults are intentionally simple — mean imputation, automatic IQR
+winsorizing, a fixed model pair, and accuracy reported first. They favor clarity
+over complexity; adjust them in `scripts/preprocessing.py` and `scripts/train.py`.

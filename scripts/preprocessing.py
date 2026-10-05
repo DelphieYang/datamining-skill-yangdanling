@@ -1,10 +1,9 @@
 """Preprocessing: build a leakage-safe pipeline.
 
-NOTE — several defaults here are deliberately simple and open to challenge
-(see the Reflection in the assignment):
-  * missing numeric values are filled with the column MEAN (not median),
-  * outliers are winsorized automatically via the IQR rule,
-  * StandardScaler is applied to ALL numeric features regardless of model,
+Defaults:
+  * missing numeric values are filled with the column mean,
+  * outliers are capped to the IQR bounds,
+  * StandardScaler is applied to all numeric features,
   * one-hot encoding is used for every categorical column.
 """
 from __future__ import annotations
@@ -47,10 +46,8 @@ def build_preprocessing(X: pd.DataFrame) -> ColumnTransformer:
     categorical_cols = X.select_dtypes(include=["object", "category"]).columns.tolist()
 
     numeric_pipe = Pipeline([
-        # Flaw #1 + #2: mean imputation then automatic IQR winsorizing.
         ("impute", SimpleImputer(strategy="mean")),
         ("winsorize", Winsorizer()),
-        # Flaw #5: scale everything, even for tree models.
         ("scale", StandardScaler()),
     ])
 

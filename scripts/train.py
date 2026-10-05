@@ -1,8 +1,6 @@
-"""Model training: a fixed default pair + hyperparameter tuning.
+"""Model training: a fixed default pair plus hyperparameter tuning.
 
-NOTE — the model pair is fixed (LogisticRegression + RandomForest) and is
-chosen BEFORE inspecting the data, rather than adapted to dataset size or
-structure. This is a deliberate simplification open to critique.
+Trains Logistic Regression and Random Forest and tunes them with GridSearchCV.
 """
 from __future__ import annotations
 

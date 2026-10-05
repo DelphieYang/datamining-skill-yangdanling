@@ -1,11 +1,8 @@
-# IN6227-Assignment-1 — Variant-2
+# {report_title}
 
-Full Name: [FULL NAME]    Matric Number: [MATRIC]
-Variant: Variant-2
-
-Model name & version: [LLM_MODEL_NAME]
-LLM interface used: [LLM_INTERFACE]
-GitHub repository: [GITHUB_LINK]
+Author: {author}
+Model used: {llm_model_name}
+Interface: {llm_interface}
 
 ## INTRODUCTION
 ...

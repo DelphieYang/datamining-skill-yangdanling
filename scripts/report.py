@@ -10,14 +10,11 @@ except ImportError:  # run as a plain script
     import utils
 
 
-REPORT_TEMPLATE = """# IN6227-Assignment-1 — Variant-2
+REPORT_TEMPLATE = """# {report_title}
 
-Full Name: {full_name}    Matric Number: {matric}
-Variant: Variant-2
-
-Model name & version: {llm_model_name}
-LLM interface used: {llm_interface}
-GitHub repository: {github_link}
+Author: {author}
+Model used: {llm_model_name}
+Interface: {llm_interface}
 
 ## INTRODUCTION
 {introduction}
@@ -48,11 +45,10 @@ def generate_report(metrics: dict, meta: dict, output_path: str | Path) -> str:
     best_name = best[0]
 
     text = REPORT_TEMPLATE.format(
-        full_name=meta.get("full_name", "[FULL NAME]"),
-        matric=meta.get("matric", "[MATRIC]"),
-        llm_model_name=meta.get("llm_model_name", "[LLM_MODEL_NAME]"),
-        llm_interface=meta.get("llm_interface", "[LLM_INTERFACE]"),
-        github_link=meta.get("github_link", "[GITHUB_LINK]"),
+        report_title=meta.get("report_title", "Tabular Classification Report"),
+        author=meta.get("author", ""),
+        llm_model_name=meta.get("llm_model_name", ""),
+        llm_interface=meta.get("llm_interface", ""),
         introduction=meta.get("introduction", "…"),
         eda_summary=meta.get("eda_summary", "…"),
         feature_work=meta.get("feature_work", "…"),

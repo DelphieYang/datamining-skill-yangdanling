@@ -2,11 +2,10 @@
 
 Usage:
     python scripts/run_skill.py \
-        --dataset_path data/train.csv \
+        --dataset_path path/to/train.csv \
+        --test_path path/to/test.csv \
         --target_column label \
-        --output_dir outputs \
-        --llm_model_name claude-haiku-4-5 \
-        --llm_interface "Claude Code 2.1.24"
+        --output_dir outputs
 """
 from __future__ import annotations
 
@@ -46,9 +45,10 @@ def main(argv=None) -> int:
     p.add_argument("--test_path", default=None)
     p.add_argument("--target_column", default=None)
     p.add_argument("--output_dir", default="outputs")
-    p.add_argument("--llm_model_name", required=True)
-    p.add_argument("--llm_interface", required=True)
-    p.add_argument("--github_link", default="[GITHUB_LINK]")
+    p.add_argument("--report_title", default="Tabular Classification Report")
+    p.add_argument("--author", default="")
+    p.add_argument("--llm_model_name", default="")
+    p.add_argument("--llm_interface", default="")
     p.add_argument("--seed", type=int, default=42)
     args = p.parse_args(argv)
 
@@ -96,14 +96,15 @@ def main(argv=None) -> int:
     # Report
     report.generate_report(
         {"models": metrics_by_model},
-        {"llm_model_name": args.llm_model_name,
-         "llm_interface": args.llm_interface,
-         "github_link": args.github_link},
+        {"report_title": args.report_title,
+         "author": args.author,
+         "llm_model_name": args.llm_model_name,
+         "llm_interface": args.llm_interface},
         out / "report.md",
     )
 
     print(f"Done. Outputs written to {out}")
-    print("Next: review intermediate files, edit reflection.md, then convert report.md to PDF.")
+    print("Next: review intermediate files, then convert report.md to PDF.")
     return 0
 
 

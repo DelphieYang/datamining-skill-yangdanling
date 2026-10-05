@@ -1,9 +1,7 @@
 """Evaluation and model comparison.
 
-NOTE — accuracy is reported FIRST and placed first in the comparison table,
-even though it can be misleading under class imbalance (which the workflow
-explicitly checks for). Class-appropriate metrics are also produced but
-appear after accuracy.
+Reports accuracy first, followed by class-appropriate metrics (balanced
+accuracy, precision/recall/F1, ROC-AUC) and a confusion matrix.
 """
 from __future__ import annotations
 
