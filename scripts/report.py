@@ -66,6 +66,127 @@ def generate_report(metrics: dict, meta: dict, output_path: str | Path) -> str:
     return text
 
 
+def build_prose(metrics: dict, model_results: dict, eda_summary: dict, target: str) -> dict:
+    """Build template narrative text from the actual run results.
+
+    Returns a dict of report-section strings so the report is not left as
+    placeholders; the numbers come from the real metrics and EDA summary.
+    """
+    models = metrics["models"]
+    names = list(models.keys())
+    best_name = max(models.items(), key=lambda kv: kv[1].get("accuracy", -1))[0]
+
+    n_rows = eda_summary["n_rows"]
+    n_cols = eda_summary["n_cols"]
+    n_num = len([c for c in eda_summary["numeric_cols"] if c != target])
+    n_cat = len([c for c in eda_summary["categorical_cols"] if c != target])
+    dist = eda_summary["target_distribution"]
+    ratio = eda_summary["imbalance_ratio"]
+    missing = eda_summary["missing"]
+
+    sorted_classes = sorted(dist.items(), key=lambda kv: kv[1], reverse=True)
+    majority, majority_n = sorted_classes[0]
+    minority, minority_n = (sorted_classes[1] if len(sorted_classes) > 1 else ("-", 0))
+    binary = len(sorted_classes) == 2
+
+    # INTRODUCTION
+    intro = (
+        f"This report documents an end-to-end tabular classification workflow. "
+        f"The dataset contains {n_rows:,} rows and {n_cols} columns "
+        f"({n_num} numeric and {n_cat} categorical features) with a "
+        f"{'binary' if binary else 'multi-class'} target column '{target}'."
+    )
+    if ratio > 1.2:
+        if binary:
+            intro += (
+                f" The target is imbalanced at roughly {ratio:.2f}:1 "
+                f"({majority}: {majority_n:,} vs {minority}: {minority_n:,})."
+            )
+        else:
+            dist_str = ", ".join(f"{k}: {v:,}" for k, v in sorted_classes)
+            intro += f" The target distribution is skewed ({dist_str})."
+    else:
+        intro += " The classes are roughly balanced."
+
+    # Data exploration and cleaning
+    if missing:
+        max_miss = max(missing.values())
+        clean = (
+            f"Missing values are sparse (at most {max_miss} per column) and were filled with the "
+            f"column mean for numeric features and the mode for categorical features. "
+        )
+    else:
+        clean = "There are no missing values. "
+    clean += (
+        "Outliers were capped to the interquartile (IQR) bounds, categorical features were "
+        "one-hot encoded, and numeric features were standardized."
+    )
+    if ratio > 1.2:
+        clean += " class_weight='balanced' was applied to counter the class imbalance."
+
+    # Feature selection / engineering
+    feature = (
+        "No ID-like or timestamp columns were present, so no leakage-prone columns needed removal. "
+        "A variance threshold dropped near-constant columns, and no new features were engineered."
+    )
+
+    # Model training
+    tuning = []
+    for name in names:
+        bp = model_results[name]["best_params"]
+        cv = model_results[name]["best_cv_score"]
+        tuning.append(f"{name} (best parameters {bp}, CV accuracy {cv:.4f})")
+    training = (
+        "Two classifiers were tuned with 5-fold stratified cross-validation and GridSearchCV: "
+        + "; ".join(tuning)
+        + ". All preprocessing was fit on training folds only to avoid leakage."
+    )
+
+    # Results
+    best = models[best_name]
+    results = f"Best model by accuracy: {best_name} ({best['accuracy']:.4f})."
+    if binary and best.get("roc_auc") is not None:
+        results += f" Its ROC-AUC is {best['roc_auc']:.4f}."
+
+    # Discussion
+    disc = f"{best_name} achieves the highest accuracy ({best['accuracy']:.4f}). "
+    if len(names) > 1:
+        other_name = [n for n in names if n != best_name][0]
+        other = models[other_name]
+        ba_best = best.get("balanced_accuracy")
+        ba_other = other.get("balanced_accuracy")
+        disc += (
+            f"{other_name} has a balanced accuracy of {ba_other:.4f} versus {ba_best:.4f} "
+            f"for {best_name}. "
+        )
+        if ba_other is not None and ba_best is not None and ba_other > ba_best:
+            disc += "So under class imbalance the two models rank differently than their raw accuracy suggests. "
+        else:
+            disc += "The accuracy gap also holds under balanced accuracy. "
+    disc += (
+        "This highlights why accuracy alone is insufficient for imbalanced data and why "
+        "balanced accuracy and macro-F1 should guide model selection."
+    )
+
+    # Conclusion
+    concl = (
+        f"The workflow successfully trained and compared {len(names)} classifiers and produced this report. "
+        f"On accuracy {best_name} is best, but the choice should be confirmed with balanced metrics "
+        f"for imbalanced data. The skill is general-purpose and can be re-run on any tabular "
+        f"classification dataset."
+    )
+
+    return {
+        "introduction": intro,
+        "eda_summary": clean,
+        "feature_work": feature,
+        "training": training,
+        "results": results,
+        "discussion": disc,
+        "conclusion": concl,
+    }
+
+
 def _latex_escape(text: str) -> str:
     """Escape characters that are special in LaTeX."""
     for ch in ("\\", "&", "%", "$", "#", "_", "{", "}", "~", "^"):

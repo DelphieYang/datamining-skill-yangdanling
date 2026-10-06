@@ -96,15 +96,17 @@ def main(argv=None) -> int:
         metrics_by_model, out / "intermediate" / "confusion_matrix.png")
 
     # Report
-    report.generate_report(
-        {"models": metrics_by_model},
-        {"report_title": args.report_title,
-         "author": args.author,
-         "llm_model_name": args.llm_model_name,
-         "llm_interface": args.llm_interface,
-         "figure": "![Confusion matrices](intermediate/confusion_matrix.png)"},
-        out / "report.md",
-    )
+    prose = report.build_prose(
+        {"models": metrics_by_model}, model_results, eda_summary, target)
+    meta = {
+        "report_title": args.report_title,
+        "author": args.author,
+        "llm_model_name": args.llm_model_name,
+        "llm_interface": args.llm_interface,
+        "figure": "![Confusion matrices](intermediate/confusion_matrix.png)",
+    }
+    meta.update(prose)
+    report.generate_report({"models": metrics_by_model}, meta, out / "report.md")
 
     # Convert to PDF, degrading gracefully if no converter is installed.
     try:
