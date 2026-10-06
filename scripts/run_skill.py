@@ -106,8 +106,13 @@ def main(argv=None) -> int:
         out / "report.md",
     )
 
+    # Convert to PDF, degrading gracefully if no converter is installed.
+    try:
+        report.to_pdf(out / "report.md", out / "report.pdf")
+    except Exception as exc:
+        print(f"Warning: could not generate report.pdf ({exc}); report.md is available.")
+
     print(f"Done. Outputs written to {out}")
-    print("Next: review intermediate files, then convert report.md to PDF.")
     return 0
 
 
