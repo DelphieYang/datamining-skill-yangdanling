@@ -118,7 +118,7 @@ Train and compare **two** classifiers by default: **Logistic Regression** and **
 
 ### 8. Evaluation
 
-Evaluate on the held-out test set and report: **accuracy first**, then balanced accuracy, precision/recall/F1 (macro and weighted), ROC-AUC / PR-AUC for binary, and a confusion matrix. Save everything to `metrics.json`. Generate a confusion-matrix plot for each model (plus an ROC curve for binary classification) and save it to `intermediate/confusion_matrix.png`.
+Evaluate on the held-out test set and report: **accuracy first**, then balanced accuracy, precision and recall (macro), F1 (macro and weighted), ROC-AUC for binary, and a confusion matrix. Save everything to `metrics.json`. Generate a confusion-matrix plot for each model and save it to `intermediate/confusion_matrix.png`.
 
 ### 9. Model Comparison
 
@@ -183,7 +183,7 @@ Interface: {llm_interface}
 
 - If the target column cannot be inferred confidently, stop and ask the human.
 - If the task is regression, stop (this skill targets classification tasks).
-- If classes are imbalanced, also report balanced accuracy, macro F1, PR-AUC, and the confusion matrix.
+- If classes are imbalanced, also report balanced accuracy, macro F1, and the confusion matrix.
 - If the dataset is small, prefer simple models and cross-validation.
 - If a model errors during training, log the failure and continue with the other.
 - If the report exceeds two pages, trim the discussion and move detail to the intermediate files.
